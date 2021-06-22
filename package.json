@@ -1,0 +1,13 @@
+{
+  "name": "gpay",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Vikash Ruhil",
+  "license": "MIT",
+  "dependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "start": "nodemon index.js"
+  }
+}

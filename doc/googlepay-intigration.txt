@@ -1,0 +1,137 @@
+Google Pay:-
+    1.  Load Pay.js library(script)
+    2.  then determine isReadyToPay();
+    3.  create button with createButton();
+    4.  then use loadPaymentData() to load payment data.
+
+Steps:-
+    1.  load script on your page.
+        example:-
+            <script src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()" />
+    2.  When loaded onGooglePayLoaded()
+    3.  In there construct PaymentClient object. set environment key in it - test/production
+        1.  for test no need to register with Google.
+        2.  for production use need registration. URL: g.co/pay/sign-up
+        example:-
+            paymentsClient = new google.payments.api.PaymentsClient({
+                environment: "TEST",
+                merchantInfo: {
+                merchantName: "Example Merchant",
+                merchantId: "01234567890123456789",
+                },
+                paymentDataCallbacks: {
+                onPaymentAuthorized: onPaymentAuthorized,
+                // onPaymentDataChanged: onPaymentDataChanged,
+                },
+            });
+    4.  create clientConfigrationObject:
+        {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            allowedPaymentMethods:[
+                {
+                    type: "CARD",
+                    parameters: {
+                    allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+                    allowedCardNetworks: [
+                        "AMEX",
+                        "DISCOVER",
+                        "JCB",
+                        "MASTERCARD",
+                        "VISA",
+                    ],
+                    // there it support other options as well. refer doc for this.
+                    },
+                }
+            ]
+        }
+    5.  then isReadyToPay with paymentsClient by passing clientConfigrationObject
+        example:-
+             paymentsClient
+          .isReadyToPay(clientConfigrationObject)
+    6.  first API to call is isReadyToPay which tell if all configration is set and user is on supported browser.
+        example:-
+            paymentsClient
+            .isReadyToPay(getGoogleIsReadyToPayRequest())
+            .then(function (response) {
+                if (response.result) {
+                // add google button.
+                }
+            })
+            .catch(function (err) {
+                // show error in developer console for debugging
+                // console.error(err);
+            });
+    7.  Now render google pay button, and handle onclick event.
+        example:-
+            paymentsClient.createButton({
+                // other optin to buton layout
+                onClick: onGooglePaymentButtonClicked,
+            });
+    8.  Then on click handler we'll create a payment data Request.
+        example:-   
+            1.  here we'll be using client configration object(clientConfigrationObject)
+            2.  add tokenizationSpecification in the clientConfigrationObject - 
+                example:-   
+                    tokenizationSpecification: {
+                        type: "PAYMENT_GATEWAY",
+                        parameters: {
+                            gateway: "globalpayments",
+                            gatewayMerchantId: "exampleGatewayMerchantId",
+                        }
+                    }
+                NOTE:- A payment method tokenization type is supported for the given PaymentMethod. For CARD payment method, use PAYMENT_GATEWAY or DIRECT. For PAYPAL PaymentMethod, use DIRECT with no parameter.
+            3.  and creating the transaction info:
+                example:-
+                clientConfigrationObject.transactionInfo = 
+                    {
+                        displayItems: [
+                            {
+                            label: "Subtotal",
+                            type: "SUBTOTAL",
+                            price: "11.00",
+                            },
+                            {
+                            label: "Tax",
+                            type: "TAX",
+                            price: "1.00",
+                            },
+                        ],
+                        countryCode: "US",
+                        currencyCode: "USD",
+                        totalPriceStatus: "FINAL",
+                        totalPrice: "12.00",
+                        totalPriceLabel: "Total",
+                        };
+                    }
+            4. also set callbeck intends:
+                example:-   
+                    paymentDataRequest.callbackIntents = [
+                        "SHIPPING_ADDRESS",
+                        "SHIPPING_OPTION",
+                        "PAYMENT_AUTHORIZATION",
+                    ]; 
+    9.  then next call w'll be loadPaymentData
+        example:-
+            paymentsClient.loadPaymentData(datac ollected in step 8);
+    10. process the payment data:
+        this can be done in 2 ways -
+            1.  with payment onPaymentAuthorized callback.
+                example:-
+                    paymentDataCallbacks: {
+                        onPaymentAuthorized: onPaymentAuthorized,
+                        // onPaymentDataChanged: onPaymentDataChanged,
+                    },
+                that works by specifing callback intents 
+            2.  or with paymentsClient.loadPaymentData(datac ollected in step 8)
+                example:-
+                    paymentsClient.loadPaymentData(datac ollected in step 8)
+                    .then((paymentData)=> {
+                        // proceesdata
+                    })
+                    .catch(function (er) {
+                    
+                    });
+
+    11. 
+
